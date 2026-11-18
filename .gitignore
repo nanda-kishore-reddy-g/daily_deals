@@ -1,0 +1,5 @@
+.env
+runs/
+seen_deals.json
+n8n/
+__pycache__/
