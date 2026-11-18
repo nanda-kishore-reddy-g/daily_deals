@@ -7,7 +7,7 @@ The keys come from the environment variables `SERPER_API_KEY` and `FIRECRAWL_API
 Let TODAY = today's date in IST (Asia/Kolkata) as YYYY-MM-DD, and RUN = `runs/TODAY` inside the repo.
 
 ## STEP 0 - Setup
-- `pip install -r requirements.txt` (quietly).
+- `python -m pip install -q -r requirements.txt` (use `python -m pip`: the plain `pip` command belongs to a different Python in the cloud sandbox).
 - Load the Google Sheets connector tools with ToolSearch (search "google sheets get_values"; you need get_spreadsheet, get_values, update_spreadsheet).
 - Rebuild the list of deals already handed over, because this cloud session starts empty: read column C (deal_key) and column A (date_found) of the tabs "Daily M&A", "Daily VC", "Daily Commercial" and "Daily IPO" of spreadsheet "Deals Automation" (id `1t1g-KNIdYoxsCpkPHo_HLYdH_upwQUZ7ey97rq2AW2c`). Write them to `seen_deals.json` as a JSON object `{"<deal_key>": "<date_found>", ...}` (skip the header row and empty keys; a missing tab simply adds nothing). `pr_tools.py extract` then skips those deals.
 
@@ -50,6 +50,7 @@ PR SOURCE RULE (strict): pr_link may only be (a) a page on the website of one of
 Spreadsheet "Deals Automation", id `1t1g-KNIdYoxsCpkPHo_HLYdH_upwQUZ7ey97rq2AW2c`. Tabs: "Daily M&A" (ma.json), "Daily VC" (vc.json), "Daily Commercial" (commercial.json), "Daily IPO" (ipo.json). The n8n workflows read these tabs at 8:30 PM IST. For each tab:
 - If the tab does not exist, create it and write this header row in row 1: date_found, deal_type, deal_key, company, counterparty, deal_summary, amount, announced_date, source_url, pr_link, pr_text, pr_status
 - Read column C (deal_key) and skip rows whose deal_key is already there.
+- Write pr_text exactly as the script scraped it (capped at 49000 characters). Never shorten, summarise or cut paragraphs from it to make the sheet write easier; split a large append into several update_spreadsheet calls (one or two rows each) instead.
 - Append the remaining rows below the last used row, columns in the header order, values written as raw text (use update_spreadsheet with updateCells and stringValue so dates stay YYYY-MM-DD and Sheets does not reformat anything). Do not include the "_tried" field. Never modify or delete existing rows or any other tab.
 - Read the tab back to confirm the row count grew by the number appended.
 If the Google Sheets tools are not available, do not use any other route: say clearly in the report that the sheet was NOT updated, and include the deals (type, company, counterparty, amount, pr_link) in the report so nothing is lost.

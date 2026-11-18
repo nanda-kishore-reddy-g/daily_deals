@@ -76,7 +76,7 @@ def load_env():
 
 
 def key(name):
-    v = os.environ.get(name, "")
+    v = os.environ.get(name, "").strip().strip("'\"").strip()   # tolerate spaces / quotes pasted around the value
     if not v:
         sys.exit(f"Missing {name}. Put it in {HERE / '.env'}")
     return v
